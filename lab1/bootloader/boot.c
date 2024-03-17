@@ -3,8 +3,12 @@
 #define SECTSIZE 512
 
 void bootMain(void) {
-	//TODO
-
+	void(*elf)();
+	elf=0x8c00; // app.elf is loaded at 0x8c00
+	for(int i=0;i<200;i++){ //实际上感觉也不用读200个扇区…
+		readSect((void*)(elf+i*SECTSIZE),i+1);
+	}
+	elf();
 }
 
 

@@ -1,4 +1,4 @@
-/* Protected Mode Loading Hello World APP */
+/* Protected Mode Hello World */
 .code16
 
 .global start
@@ -7,9 +7,9 @@ start:
 	movw %ax, %ds
 	movw %ax, %es
 	movw %ax, %ss
-	# 关中断
-	cli
 
+	# 关中断
+	cli				
 
 	# 启动A20总线
 	inb $0x92, %al 
@@ -39,7 +39,37 @@ start32:
 	
 	movl $0x8000, %eax # setting esp
 	movl %eax, %esp
-	jmp bootMain # jump to bootMain in boot.c
+
+	# 输出Hello World
+    pushl $13 # pushing the size to print into stack
+    pushl $message # pushing the address of message into stack
+    call displayStr # calling the display function
+
+
+loop32:
+	jmp loop32
+
+message:
+	.string "Hello, World!\n\0"
+
+displayStr:
+    pushl %ebp
+    movl 8(%esp), %ebx # addr of message to ebx
+    movl 12(%esp), %ecx # length to ecx
+	movl $(80*5*2), %edi #initial coordinate,line 5,times 2 due to 2-byte charinfo
+	movb $0x0c, %ah #set display mode
+	
+
+printNextChar:
+	movb (%ebx),%al # fill the ascii
+	movw %ax,%gs:(%edi) #move the 2-byte char info to screen
+	addl $2,%edi #next coordinate
+	addl $1,%ebx #next char
+	decl %ecx
+	cmpl $0x0,%ecx
+	jne printNextChar
+	popl %ebp
+	ret
 
 .p2align 2
 gdt: # 8 bytes for each table entry, at least 1 entry
